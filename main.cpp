@@ -97,7 +97,7 @@ void print_bnode(BNode<int> *node, const char* prefix, bool isLeft) {
     // print the value of the node
     printf("%i\n", node->data);
     
-    char* npref = new char[strlen(prefix)+5];
+    char* npref = new char[strlen(prefix)+6];
     strcpy(npref, prefix);
     strcat(npref, isLeft ? "┃  " : "   ");
 
@@ -151,7 +151,7 @@ int main() {
 			loadfile(bst);
 		}
 		else if (strcmp(buf,"RANDOM") == 0) {
-			randomGen(bst,100);
+			randomGen(bst,25);
 		}
 		else if (strcmp(buf,"CLEAR") == 0) {
 			bst.clear();
