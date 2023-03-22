@@ -73,16 +73,80 @@ void cmdinput(BST<int>& bst) {
 	}
 }
 
+// Takes sorted array, inserts recursive medians with the goal of making a height-balanced BST.
+void median_insert(BST<int>& bst, const int* arr, const int count) {
+	struct Block { int pos, len; };
+	struct Node { Block b; Node* n; };
+
+	Node* head = new Node{Block{0,count},nullptr};
+	Node* tail = head;
+
+	while (head != nullptr) {
+		// Pop head
+		const Block b = head->b;
+		// printf("On block: %i, %i\n", b.pos, b.len);
+		if (head == tail) {
+			delete head;
+			head = nullptr;
+			tail = nullptr;
+		}
+		else {
+			Node* oh = head;
+			head = head->n;
+			delete oh;
+		}
+
+		int rel_med_idx = b.len / 2;
+		int abs_med_idx = b.pos + rel_med_idx;
+
+		printf("%i ", arr[abs_med_idx]);
+		bst.insert(arr[abs_med_idx]);
+		
+		if (rel_med_idx > 0) {
+			Node* n = new Node{Block{b.pos,rel_med_idx},nullptr};
+			if (tail) {
+				tail->n = n;
+				tail = tail->n;
+			}
+			else {
+				head = n;
+				tail = n;
+			}
+		}
+		int rblk_sz = rel_med_idx;
+		if (b.len%2==0) --rblk_sz;
+		if (rblk_sz > 0) {
+			Node* n = new Node{Block{abs_med_idx+1,rblk_sz},nullptr};
+			if (tail) {
+				tail->n = n;
+				tail = tail->n;
+			}
+			else {
+				head = n;
+				tail = n;
+			}
+		}
+	}
+	printf("\n");
+}
+
+int compint(const void* a, const void* b) {
+	return *(int*)a - *(int*)b;
+}
 
 // Randomly generate numbers and add to heap.
-void randomGen(BST<int>& bst, int count) {
+void randomGen(BST<int>& bst, int count, int max) {
 	srand(time(NULL));
+
+	int* nums = new int[count];
 
 	printf("Generating and adding %i numbers...\n", count);
 	for (int i=0;i<count;i++) {
-		int r = rand() % 1000;
-		bst.insert(r);
+		nums[i] = rand() % max;
 	}
+	qsort(nums,count,sizeof(int),compint);
+	median_insert(bst,nums,count);
+	delete[] nums;
 }
 
 // https://stackoverflow.com/questions/36802354/print-binary-tree-in-a-pretty-way-using-c
@@ -92,7 +156,6 @@ void print_bnode(BNode<int> *node, const char* prefix, bool isLeft) {
     }
     printf("%s", prefix);
     printf(isLeft ? "┣━━" : "┗━━" );
-    
 
     // print the value of the node
     printf("%i\n", node->data);
@@ -105,7 +168,7 @@ void print_bnode(BNode<int> *node, const char* prefix, bool isLeft) {
     print_bnode(node->left, npref, node->right == nullptr ? false : true);
     print_bnode(node->right, npref, false);
 
-    delete[] npref; // TODO: FIX THIS CRASH!
+    delete[] npref;
 }
 
 template <typename T>
@@ -151,7 +214,7 @@ int main() {
 			loadfile(bst);
 		}
 		else if (strcmp(buf,"RANDOM") == 0) {
-			randomGen(bst,25);
+			randomGen(bst,25,100);
 		}
 		else if (strcmp(buf,"CLEAR") == 0) {
 			bst.clear();
@@ -171,6 +234,5 @@ int main() {
 	}
 
 	printf("Goodbye World!\n");
-    
     return 0;
 }
