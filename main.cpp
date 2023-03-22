@@ -16,6 +16,11 @@ void consolein(char* cstr, std::streamsize n) {
 	#endif
 }
 
+void median_insert(BST<int>& bst, const int* arr, const int count);
+int compint(const void* a, const void* b) {
+	return *(int*)a - *(int*)b;
+}
+
 // Load from space-delimited file of numbers.
 void loadfile(BST<int>& bst) {
 	char filename[32] = { '\0' };
@@ -33,6 +38,8 @@ void loadfile(BST<int>& bst) {
 	size_t bufpos = 0;
 	int c;
 	int count = 0;
+	int capacity = 128;
+	int* nums = (int*)malloc(capacity * sizeof(int));
 	while (true) {
 		c = fgetc(file); // Grab next character from file
 		if (isdigit(c) || c == '+' || c == '-') { // Allow these characters as defined by atoi(const char*) spec.
@@ -43,9 +50,12 @@ void loadfile(BST<int>& bst) {
 		else {
 			if (strlen(numbuf) > 0) {
 				int num = atoi(numbuf);
-				// printf("Read: %i\n", num);
-				count++;
-				bst.insert(num); // Push number to heap and reset integer building buffer.
+				if (count >= capacity) {
+					capacity *= 2;
+					nums = (int*)realloc(nums,capacity*sizeof(int));
+				}
+				nums[count] = num;
+				++count;
 				numbuf[0] = '\0';
 				bufpos = 0;
 			}
@@ -53,11 +63,19 @@ void loadfile(BST<int>& bst) {
 		if (c == EOF) break;
 	}
 	assert(strlen(numbuf) == 0);
+	
+	qsort(nums,count,sizeof(int),compint);
+	median_insert(bst,nums,count);
 	printf("Read %i numbers!\n", count);
+	free(nums);
 }
 
 // Manual number entry via console.
 void cmdinput(BST<int>& bst) {
+	const int increment = 100;
+	int capacity = increment;
+	int count = 0;
+	int* nums = (int*)malloc(sizeof(int)*capacity);
 	char buf[32] = { '\0' };
 	while (true) {
 		printf("Enter a number (or \"STOP\"): ");
@@ -68,9 +86,17 @@ void cmdinput(BST<int>& bst) {
 		}
 		if (strcmp(buf,"STOP") == 0) break;
 		int num = atoi(buf);
-		bst.insert(num);
-		printf("Added %i\n", num);
+		if (count >= capacity) {
+			capacity += increment;
+			nums = (int*)realloc(nums,sizeof(int)*capacity);
+		}
+		nums[count] = num;
+		++count;
 	}
+	qsort(nums,count,sizeof(int),compint);
+	median_insert(bst,nums,count);
+	printf("Added %i numbers!\n", count);
+	free(nums);
 }
 
 // Takes sorted array, inserts recursive medians with the goal of making a height-balanced BST.
@@ -128,10 +154,6 @@ void median_insert(BST<int>& bst, const int* arr, const int count) {
 		}
 	}
 	printf("\n");
-}
-
-int compint(const void* a, const void* b) {
-	return *(int*)a - *(int*)b;
 }
 
 // Randomly generate numbers and add to heap.
