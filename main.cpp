@@ -194,12 +194,12 @@ void print_bnode(BNode<int> *node, const char* prefix, bool isLeft) {
 }
 
 template <typename T>
-void print_bst(BST<T>& bst) {
+void print_bst(const BST<T>& bst) {
     assert(false);
     printf("Unspec template!\n");
 }
 template <>
-void print_bst(BST<int>& bst) {
+void print_bst(const BST<int>& bst) {
     if (bst.head) 
     {
         print_bnode(bst.head,"",false);
@@ -209,15 +209,36 @@ void print_bst(BST<int>& bst) {
     }
 }
 
+void search_bst(const BST<int>& bst) {
+	char buf[32] = { '\0' };
+	printf("Number to search for: ");
+	consolein(buf,32);
+	int key = atoi(buf);
+	printf("Searching for %i...\n", key);
+	bool found = bst.contains(key);
+	printf("%s %i\n", found ? "Found" : "Did not find", key); 
+}
+void delete_bst(BST<int>& bst) {
+	char buf[32] = { '\0' };
+	printf("Number to remove: ");
+	consolein(buf,32);
+	int key = atoi(buf);
+	printf("Searching for %i...\n", key);
+	bool removed = bst.remove(key);
+	printf("%s %i\n", removed ? "Removed" : "Did not find", key); 
+}
+
 int main() {
 	BST<int> bst;
 	const char* const HELP_STR = "Commands:\n"
 		"	HELP - displays this list of commands.\n"
-		"	MANUAL - type in numbers manually to the heap.\n"
-		"	FILE - type in a filename to load numbers from.\n"
-		"	RANDOM - generates 100 random integers to be added.\n"
-		"	CLEAR - remove all numbers from heap without printing.\n"
-		"	TREE - visualize the heap as a tree in the console.\n"
+		"	MANUAL - manually add numbers to the BST.\n"
+		"	FILE - load numbers from a specified file into the BST.\n"
+		"	RANDOM - generates 100 random integers to be added to the BST.\n"
+		"	CLEAR - remove all numbers from BST without printing.\n"
+		"	TREE - visualize the BST as a tree in the console.\n"
+		"	SEARCH - check if a specified number is in the BST.\n"
+		"	DELETE - remove a specified number from the BST.\n"
         "	QUIT - end program.\n";
 
 	printf(HELP_STR);
@@ -245,6 +266,12 @@ int main() {
 		else if (strcmp(buf,"TREE") == 0) {
 			printf("\n TREE: \n");
 			print_bst(bst);
+		}
+		else if (strcmp(buf,"SEARCH") == 0) {
+			search_bst(bst);
+		}
+		else if (strcmp(buf,"DELETE") == 0) {
+			delete_bst(bst);
 		}
 		else if (strcmp(buf,"QUIT") == 0) {
 			printf("Exiting!\n");

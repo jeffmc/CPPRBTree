@@ -34,10 +34,19 @@ class BST {
             u->right = v;
         }
     }
+    BNode<T>* bst_max(BNode<T> *x) {
+        while (x->right) x = x->right;
+        return x;
+    }
+    BNode<T>* bst_min(BNode<T> *x) {
+        while (x->left) x = x->left;
+        return x;
+    }
 public:
     operator bool() const { return head != nullptr; }
     template <typename ...Args> 
-    void insert(const T& o) {
+    // Returns true if not already contained (doesn't duplicate), insert the key at a fitting space in the tree.
+    bool insert(const T& o) {
         BNode<T>* z = new BNode<T>(o);
         if (head == nullptr) {
             head = z;
@@ -46,7 +55,11 @@ public:
             BNode<T>* y = nullptr, *x = head;
             do {
                 y = x;
-                if (z->data < x->data) {
+                if (z->data == x->data) {
+                    delete z;
+                    return true;
+                }
+                else if (z->data < x->data) {
                     x = x->left;
                 }
                 else {
@@ -60,15 +73,17 @@ public:
                 y->right = z;
             }
         }
+        return false;
     }
+    // Delete all nodes
     void clear() 
     {
         if (!head) return;
         delete_tree(head);
         head = nullptr;
     }
-    // Returns node containing 
-    BNode<T>* find(const T& key) const 
+    // Returns (first) node equal to specified key
+    BNode<T>* find(const T& key) 
     {
         BNode<T> *x = head;
         while (x != nullptr && x->data != key) {
@@ -81,28 +96,89 @@ public:
         }
         return x;
     }
-    bool contains(const T& key) const {
-        return find(key) != nullptr;
-    }
-    bool remove(const T& key) const 
+    // Returns (first) node equal to specified key
+    const BNode<T>* find(const T& key) const 
     {
-        BNode<T> *y = nullptr, *x = head;
-        ORIENTATION o = LEFT;
+        BNode<T> *x = head;
         while (x != nullptr && x->data != key) {
-            y = x;
             if (key < x->data) {
                 x = x->left;
-                o = LEFT;
             }
             else {
                 x = x->right;
+            }
+        }
+        return x;
+    }
+    // Return true if BST contains key (at least once).
+    bool contains(const T& key) const {
+        return find(key) != nullptr;
+    }
+    // Return true if key was removed from BST (once).
+    bool remove(const T& key)  
+    {
+        BNode<T> *y = nullptr, *x = head; // y is parent of x, x is node == key.
+        ORIENTATION o = LEFT; // side of y that x is on.
+        while (x != nullptr && x->data != key) {
+            y = x;
+            if (key < x->data) {
+                o = LEFT;
+                x = x->left;
+            }
+            else {
                 o = RIGHT;
+                x = x->right;
             }
         }
         if (x == nullptr) return false;
 
+        if (x->left != nullptr && x->right != nullptr) {
+            // Both children
+            assert(false); // TODO: THIS
+        } else if (x->left != nullptr) {
+            // Left child
+            if (y != nullptr) {
+                if (o == LEFT) {
+                    y->left = x->left;
+                }
+                else {
+                    y->right = x->left;
+                }
+            }
+            else {
+                head = x->left;
+            }
 
+        } else if (x->right != nullptr) {
+            // Right child
+            if (y != nullptr) {
+                if (o == LEFT) {
+                    y->left = x->right;
+                }
+                else {
+                    y->right = x->right;
+                }
+            }
+            else {
+                head = x->right;
+            }
+        }
+        else {
+            // Leaf
+            if (y != nullptr) {
+                if (o == LEFT) {
+                    y->left = nullptr;
+                } else {
+                    y->right = nullptr;
+                }
+            }
+            else {
+                head = nullptr;
+            }
+        }
+        delete x;
+        return true;
     }
     template <typename NT>
-    friend void print_bst(BST<NT>& bst);
+    friend void print_bst(const BST<NT>& bst);
 };
