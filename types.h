@@ -1,11 +1,10 @@
 #include <cassert>
-#include <utility>
+#include <cstdlib>
 
 template <typename NT>
 struct BNode {
     NT data;
-    BNode *parent = nullptr, *left = nullptr, *right = nullptr;
-    BNode(NT&& o) : data(std::move(o)) {}
+    BNode *left = nullptr, *right = nullptr;
     BNode(const NT& o) : data(NT(o)) {}
     BNode() {}
     ~BNode() {};
@@ -21,28 +20,33 @@ class BST {
         if (n->right) delete_tree(n->right);
         delete n;
     }
-    void shift_nodes(BNode<T> *u, BNode<T> *v) {
-        if (u->parent == nullptr) {
+    void shift_nodes(BNode<T>* up, BNode<T> *u, BNode<T> *v) {
+        if (up == nullptr) {
+            assert(u == head);
             head = v;
-        } else if (u == u->parent->left) {
-            u->parent->left = v;
+        } else if (u == up->left) {
+            up->left = v;
         } else {
-            u->parent->right = v;
+            up->right = v;
         }
-        if (v != nullptr) {
-            v->parent = u->parent;
-        }
-        delete u;
     } 
     BNode<T>* bst_minimum(BNode<T> *x) {
         while (x->left != nullptr) x = x->left;
+        return x;
+    } 
+    BNode<T>* bst_minimum(BNode<T> *x, BNode<T>* &p) {
+        while (x->left != nullptr) {
+            p = x;
+            x = x->left;
+        }
         return x;
     }
     BNode<T>* bst_maximum(BNode<T> *x) {
         while (x->right != nullptr) x = x->right;
         return x;
     }
-    BNode<T>* successor(BNode<T> *x) {
+    // Parent list, parent list size
+    BNode<T>* successor(BNode<T>** pl, int plsz, BNode<T> *x) {
         if (x->right != nullptr) {
             return bst_minimum(x->right);
         }
@@ -53,7 +57,8 @@ class BST {
         }
         return y;
     }
-    BNode<T>* predecessor(BNode<T> *x) {
+    // Parent list, parent list size
+    BNode<T>* predecessor(BNode<T>** pl, int plsz, BNode<T> *x) {
         if (x->left != nullptr) {
             return bst_maximum(x->left);
         }
@@ -64,22 +69,22 @@ class BST {
         }
         return y;
     }
-    void bst_delete(BNode<T> *d) {
+    void bst_delete(BNode<T>* dp, BNode<T> *d) {
         if (d->left == nullptr) {
-            shift_nodes(d, d->right);
+            shift_nodes(dp, d, d->right);
         } else if (d->right == nullptr) {
-            shift_nodes(d, d->left);
+            shift_nodes(dp, d, d->left);
         } else {
-            BNode<T> *e = successor(d);
-            if (e->parent != d) {
-                shift_nodes(e, e->right);
+            BNode<T> *ep = nullptr;
+            BNode<T> *e = bst_minimum(d->right, ep);
+            if (e != d->right) { // if successor is not d's immediate child
+                shift_nodes(ep, e, e->right);
                 e->right = d->right;
-                e->right->parent = e;
             }
-            shift_nodes(d,e);
+            shift_nodes(dp,d,e);
             e->left = d->left;
-            e->left->parent = e;
         }
+        delete d;
     }
 public:
     operator bool() const { return head != nullptr; }
@@ -105,7 +110,6 @@ public:
                     x = x->right;
                 }
             } while (x != nullptr);
-            z->parent = y;
             if (z->data < y->data) {
                 y->left = z;
             }
@@ -157,9 +161,18 @@ public:
     // Return true if key was removed from BST (once).
     bool remove(const T& key)  
     {
-        BNode<T> *d = find(key);
-        if (d == nullptr) return false;
-        bst_delete(d);
+        BNode<T> *xp = nullptr, *x = head;
+        while (x != nullptr && x->data != key) {
+            xp = x;
+            if (key < x->data) {
+                x = x->left;
+            }
+            else {
+                x = x->right;
+            }
+        }
+        if (x == nullptr) return false;
+        bst_delete(xp,x);
         return true;
     }
     template <typename NT>

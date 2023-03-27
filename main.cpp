@@ -261,7 +261,7 @@ int main() {
 		}
 		else if (strcmp(buf,"CLEAR") == 0) {
 			bst.clear();
-			printf("Cleared heap!\n");
+			printf("Cleared BST of all nodes!\n");
 		}
 		else if (strcmp(buf,"TREE") == 0) {
 			printf("\n TREE: \n");
