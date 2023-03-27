@@ -4,7 +4,7 @@
 template <typename NT>
 struct BNode {
     NT data;
-    BNode *left = nullptr, *right = nullptr;
+    BNode *parent = nullptr, *left = nullptr, *right = nullptr;
     BNode(NT&& o) : data(std::move(o)) {}
     BNode(const NT& o) : data(NT(o)) {}
     BNode() {}
@@ -21,26 +21,65 @@ class BST {
         if (n->right) delete_tree(n->right);
         delete n;
     }
-    // u is new parent, v is new child, o is orientation.
-    void shift_nodes(BNode<T> *u, BNode<T> *v, ORIENTATION o)
-    {
-        if (u == nullptr) {
+    void shift_nodes(BNode<T> *u, BNode<T> *v) {
+        if (u->parent == nullptr) {
             head = v;
+        } else if (u == u->parent->left) {
+            u->parent->left = v;
+        } else {
+            u->parent->right = v;
         }
-        else if (o == LEFT) {
-            u->left = v;
+        if (v != nullptr) {
+            v->parent = u->parent;
         }
-        else {
-            u->right = v;
-        }
-    }
-    BNode<T>* bst_max(BNode<T> *x) {
-        while (x->right) x = x->right;
+        delete u;
+    } 
+    BNode<T>* bst_minimum(BNode<T> *x) {
+        while (x->left != nullptr) x = x->left;
         return x;
     }
-    BNode<T>* bst_min(BNode<T> *x) {
-        while (x->left) x = x->left;
+    BNode<T>* bst_maximum(BNode<T> *x) {
+        while (x->right != nullptr) x = x->right;
         return x;
+    }
+    BNode<T>* successor(BNode<T> *x) {
+        if (x->right != nullptr) {
+            return bst_minimum(x->right);
+        }
+        BNode<T> *y = x->parent;
+        while (y != nullptr && x == y->right) {
+            x = y;
+            y = y->parent;
+        }
+        return y;
+    }
+    BNode<T>* predecessor(BNode<T> *x) {
+        if (x->left != nullptr) {
+            return bst_maximum(x->left);
+        }
+        BNode<T> *y = x->parent;
+        while (y != nullptr && x == y->left) {
+            x = y;
+            y = y->parent;
+        }
+        return y;
+    }
+    void bst_delete(BNode<T> *d) {
+        if (d->left == nullptr) {
+            shift_nodes(d, d->right);
+        } else if (d->right == nullptr) {
+            shift_nodes(d, d->left);
+        } else {
+            BNode<T> *e = successor(d);
+            if (e->parent != d) {
+                shift_nodes(e, e->right);
+                e->right = d->right;
+                e->right->parent = e;
+            }
+            shift_nodes(d,e);
+            e->left = d->left;
+            e->left->parent = e;
+        }
     }
 public:
     operator bool() const { return head != nullptr; }
@@ -66,6 +105,7 @@ public:
                     x = x->right;
                 }
             } while (x != nullptr);
+            z->parent = y;
             if (z->data < y->data) {
                 y->left = z;
             }
@@ -117,66 +157,9 @@ public:
     // Return true if key was removed from BST (once).
     bool remove(const T& key)  
     {
-        BNode<T> *y = nullptr, *x = head; // y is parent of x, x is node == key.
-        ORIENTATION o = LEFT; // side of y that x is on.
-        while (x != nullptr && x->data != key) {
-            y = x;
-            if (key < x->data) {
-                o = LEFT;
-                x = x->left;
-            }
-            else {
-                o = RIGHT;
-                x = x->right;
-            }
-        }
-        if (x == nullptr) return false;
-
-        if (x->left != nullptr && x->right != nullptr) {
-            // Both children
-            assert(false); // TODO: THIS
-        } else if (x->left != nullptr) {
-            // Left child
-            if (y != nullptr) {
-                if (o == LEFT) {
-                    y->left = x->left;
-                }
-                else {
-                    y->right = x->left;
-                }
-            }
-            else {
-                head = x->left;
-            }
-
-        } else if (x->right != nullptr) {
-            // Right child
-            if (y != nullptr) {
-                if (o == LEFT) {
-                    y->left = x->right;
-                }
-                else {
-                    y->right = x->right;
-                }
-            }
-            else {
-                head = x->right;
-            }
-        }
-        else {
-            // Leaf
-            if (y != nullptr) {
-                if (o == LEFT) {
-                    y->left = nullptr;
-                } else {
-                    y->right = nullptr;
-                }
-            }
-            else {
-                head = nullptr;
-            }
-        }
-        delete x;
+        BNode<T> *d = find(key);
+        if (d == nullptr) return false;
+        bst_delete(d);
         return true;
     }
     template <typename NT>
