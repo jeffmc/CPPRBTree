@@ -118,12 +118,6 @@ void print_rbnode(RBNode<int> *node, const char* prefix, bool isLeft) {
     delete[] npref;
 }
 
-template <typename T>
-void print_rbt(const RBTree<T>& rbt) {
-    assert(false);
-    printf("Unspec template!\n");
-}
-template <>
 void print_rbt(const RBTree<int>& rbt) {
 	print_rbnode(rbt.head,"",false);
 }
@@ -153,14 +147,15 @@ int main() {
 	RBTree<int> rbt;
 	const char* const HELP_STR = "Commands:\n"
 		"	HELP - displays this list of commands.\n"
-		"	MANUAL - manually add numbers to the BST.\n"
-		"	FILE - load numbers from a specified file into the BST.\n"
-		"	RANDOM - generates 100 random integers to be added to the BST.\n"
-		"	CLEAR - remove all numbers from BST without printing.\n"
-		"	TREE - visualize the BST as a tree in the console.\n"
-		"	SEARCH - check if a specified number is in the BST.\n"
-		"	DELETE - remove a specified number from the BST.\n"
-        "	QUIT - end program.\n";
+		"	MANUAL - manually add numbers to the RBT.\n"
+		"	FILE - load numbers from a specified file into the RBT.\n"
+		"	RANDOM - generates 100 random integers to be added to the RBT.\n"
+		"	CLEAR - remove all numbers from RBT without printing.\n"
+		"	TREE - visualize the RBT as a tree in the console.\n"
+		"	SEARCH - check if a specified number is in the RBT.\n"
+		"	DELETE - remove a specified number from the RBT.\n"
+        "	QUIT - end program.\n"
+        "	EX - clear current and load default example RBT.\n";
 
 	printf(HELP_STR);
 	char buf[32] = { '\0' };
@@ -196,6 +191,10 @@ int main() {
 		else if (strcmp(buf,"QUIT") == 0) {
 			printf("Exiting!\n");
 			break;
+		}
+		else if (strcmp(buf,"EX") == 0) {
+			example_rbtree(rbt);
+			printf("Example loaded!\n");
 		}
 		else {
 			printf("\"%s\" is not a valid command!\n", buf);
