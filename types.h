@@ -2,6 +2,8 @@
 #include <cstdlib>
 #include <cstdint>
 
+#include "debug.h"
+
 // Doubly-linked list
 template<typename T>
 struct DLList {
@@ -127,6 +129,7 @@ class RBTree {
     // N -> node to be inserted, P -> parent node of N ( may be NULL ), byte is LEFT or RIGHT child of P to insert N
     void intl_insert(RBNode<T>* N, RBNode<T>* P, uint8_t dir)
     {
+        DBGTRACE();
         // parent of P, uncle of N
         RBNode<T> *G, *U;
 
@@ -135,13 +138,17 @@ class RBTree {
         N->right = nullptr;
         N->parent = P;
         if (P == nullptr) { // inserting at root of tree
+            DBGLOG("Root insertion!");
             head = N;
             return;
         }
+        DBGLOG("Pre-loop");
         P->child[dir] = N; // insert N as dir-child of P
         do {   
+            DBGLOG("Loop iteration\n");
             if (P->color == color_t::BLACK) {
                 Case_I1: // (P black)
+                DBGLOG("Case I1\n");
                 return; // insertion complete
             }
             // P is guaranteed red now.
@@ -155,6 +162,7 @@ class RBTree {
             goto Case_I56; // P red && U black    
             
             // Case_I2: (P+U red)
+            DBGLOG("Case I2\n");
             P->color = color_t::BLACK;
             U->color = color_t::BLACK;
             G->color = color_t::RED;
@@ -162,13 +170,16 @@ class RBTree {
         } while ((P = N->parent) != NULL); 
         
         // Case_I3: N is the root and red.
+        DBGLOG("Case I3\n");
         return; // insertion complete
         
         Case_I4: // P is the root and red
+        DBGLOG("Case I4\n");
         P->color = color_t::BLACK;
         return; // insertion complete
         
         Case_I56: // P red && U black:
+        DBGLOG("Case I56\n");
         if (N == P->child[1-dir])
         { 
             // Case_I5 (P red && U black && N inner grandchild of G):
@@ -189,13 +200,17 @@ public:
     template <typename ...Args> 
     // Returns true if successfully inserted, will return false if data is already contained (doesn't duplicate).
     bool insert(const T& o) {
-        RBNode<T> *z; // new node
+        DBGTRACE();
+        RBNode<T> *z = new RBNode<T>(o); // new node
         if (head == nullptr) { // empty tree case
+            DBGLOG("Inserting as head");
             intl_insert(z, nullptr, 0);
             return true;
         }
+        DBGLOG("Finding insertion spot in tree");
         RBNode<T>* y = nullptr, *x = head; // moving pointers (downward the tree towards an insertion target. )
         do {
+            DBGLOG("Loop iteration");
             y = x;
             if (z->data == x->data) {
                 delete z;

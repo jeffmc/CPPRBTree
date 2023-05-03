@@ -88,9 +88,11 @@ void cmdinput(RBTree<int>& rbt) {
 void randomGen(RBTree<int>& rbt, int count, int max) {
 	srand(time(NULL));
 
+	DBGTRACE();
 	int inserted_count = 0;
 	printf("Generating %i numbers...\n", count);
 	for (int i=0;i<count;i++) {
+		DBGLOG("Generating a number");
 		if (rbt.insert(rand() % max)) ++inserted_count;
 	}
 	printf("Inserted %i numbers...\n", inserted_count);
