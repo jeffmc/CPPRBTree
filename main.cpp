@@ -107,7 +107,7 @@ void print_rbnode(RBNode<int> *node, const char* prefix, bool isLeft) {
     printf(isLeft ? "┣━━" : "┗━━" );
 
     // print the value of the node
-    printf("%i\n", node->data);
+    printf("\x1b[47;%sm%i\x1b[49;39m\n", node->color == color_t::RED ? "31" : "30", node->data);
     
     char* npref = new char[strlen(prefix)+6];
     strcpy(npref, prefix);
