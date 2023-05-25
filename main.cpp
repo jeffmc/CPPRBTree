@@ -91,9 +91,17 @@ void randomGen(RBTree<int>& rbt, int count, int max) {
 	DBGTRACE();
 	int inserted_count = 0;
 	printf("Generating %i numbers...\n", count);
+	constexpr const size_t bufsz = 128;
+	char buf[bufsz] = {'\0'};
 	for (int i=0;i<count;i++) {
-		DBGLOG("Generating a number");
-		if (rbt.insert(rand() % max)) ++inserted_count;
+		int gen = rand() % max;
+		snprintf(buf,bufsz,"Generating a number: %i", gen);
+		DBGLOG(buf);
+		if (rbt.insert(gen)) {
+			++inserted_count;
+		} else {
+			DBGLOG("Random insert failed!");
+		}
 	}
 	printf("Inserted %i numbers...\n", inserted_count);
 }

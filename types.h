@@ -138,6 +138,7 @@ class RBTree {
         N->right = nullptr;
         N->parent = P;
         if (P == nullptr) { // inserting at root of tree
+            N->color = color_t::BLACK;
             DBGLOG("Root insertion!");
             head = N;
             return;
@@ -145,10 +146,10 @@ class RBTree {
         DBGLOG("Pre-loop");
         P->child[dir] = N; // insert N as dir-child of P
         do {   
-            DBGLOG("Loop iteration\n");
+            DBGLOG("Loop iteration");
             if (P->color == color_t::BLACK) {
                 Case_I1: // (P black)
-                DBGLOG("Case I1\n");
+                DBGLOG("Case I1");
                 return; // insertion complete
             }
             // P is guaranteed red now.
@@ -162,7 +163,7 @@ class RBTree {
             goto Case_I56; // P red && U black    
             
             // Case_I2: (P+U red)
-            DBGLOG("Case I2\n");
+            DBGLOG("Case I2");
             P->color = color_t::BLACK;
             U->color = color_t::BLACK;
             G->color = color_t::RED;
@@ -170,16 +171,16 @@ class RBTree {
         } while ((P = N->parent) != NULL); 
         
         // Case_I3: N is the root and red.
-        DBGLOG("Case I3\n");
+        DBGLOG("Case I3");
         return; // insertion complete
         
         Case_I4: // P is the root and red
-        DBGLOG("Case I4\n");
+        DBGLOG("Case I4");
         P->color = color_t::BLACK;
         return; // insertion complete
         
         Case_I56: // P red && U black:
-        DBGLOG("Case I56\n");
+        DBGLOG("Case I56");
         if (N == P->child[1-dir])
         { 
             // Case_I5 (P red && U black && N inner grandchild of G):
