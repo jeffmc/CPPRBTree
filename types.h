@@ -195,10 +195,124 @@ class RBTree {
         G->color = color_t::RED;
         return;
     }
+    void intl_delete(RBNode<T>* N)  // N -> node to be deleted
+    {
+        RBNode<T> *P = N->parent,  // -> parent node of N
+            *S,  // Sibling of N
+            *C,  // Close nephew of N
+            *D;  // Distant nephew of N
+
+        int dir = N->child_dir(); // side of P on which N is located (∈ { LEFT, RIGHT })
+
+        // P != NULL, since N is not the root.
+        
+        // Replace N at its parent P by NIL:
+        P->child[dir] = nullptr;
+        goto Start_D;      // jump into the loop
+
+        do {
+            dir = N->child_dir();   // side of parent P on which node N is located
+        Start_D:
+            S = P->child[1-dir]; // sibling of N (has black height >= 1)
+            D = S->child[1-dir]; // distant nephew
+            C = S->child[  dir]; // close   nephew
+            if (S->color == color_t::RED)
+            goto Case_D3; // S red ===> P+C+D black
+            // S is black:
+            if (D != nullptr && D->color == color_t::RED) // not considered black
+                goto Case_D6;                  // D red && S black
+            if (C != nullptr && C->color == color_t::RED) // not considered black
+                goto Case_D5;                  // C red && S+D black
+            
+            // Here both nephews are == NIL (first iteration) or black (later).
+            if (P->color == color_t::RED)
+                goto Case_D4; // P red && C+S+D black
+            // Case_D1 (P == NULL):
+            return; // deletion complete
+
+            // Case_D2 (P+C+S+D black):
+            S->color = color_t::RED;
+            N = P; // new current node (maybe the root)
+            
+            // iterate 1 black level
+            //   (= 1 tree level) higher
+        } while ((P = N->parent) != nullptr);
+        
+        Case_D3: // S red && P+C+D black:
+            rotate_dir(P,dir); // P may be the root
+            P->color = color_t::RED;
+            S->color = color_t::BLACK;
+            S = C; // != NIL
+            
+            // now: P red && S black
+            D = S->child[1-dir]; // distant nephew
+            if (D != nullptr && D->color == color_t::RED)
+                goto Case_D6;      // D red && S black
+
+            C = S->child[dir]; // close   nephew
+            if (C != nullptr && C->color == color_t::RED)
+                goto Case_D5;      // C red && S+D black
+            
+            // Otherwise C+D considered black.
+            // fall through to Case_D4
+        Case_D4: // P red && S+C+D black:
+            S->color = color_t::RED;
+            P->color = color_t::BLACK;
+            return; // deletion complete
+        Case_D5: // C red && S+D black:
+            rotate_dir(S,1-dir); // S is never the root
+            S->color = color_t::RED;
+            C->color = color_t::BLACK;
+            D = S;
+            S = C;
+            // now: D red && S black
+            // fall through to Case_D6
+        Case_D6: // D red && S black:
+            rotate_dir(P,dir); // P may be the root
+            S->color = P->color;
+            P->color = color_t::BLACK;
+            D->color = color_t::BLACK;
+            return; // deletion complete
+    }
+
+    const RBNode<T>* find(const T& value) const {
+        const RBNode<T>* n = head;
+        while (true) {
+            if (n->data == value) {
+                return n;
+            } else if (value < n->data) {
+                if (n->left == nullptr) break;
+                n = n->left;
+            } else if (value > n->data) {
+                if (n->right == nullptr) break;
+                n = n->right;
+            }
+        }
+        return nullptr;
+    }
+
+    RBNode<T>* find(const T& value) {
+        RBNode<T>* n = head;
+        while (true) {
+            if (n->data == value) {
+                return n;
+            } else if (value < n->data) {
+                if (n->left == nullptr) break;
+                n = n->left;
+            } else if (value > n->data) {
+                if (n->right == nullptr) break;
+                n = n->right;
+            }
+        }
+        return nullptr;
+    }
 
 public:
+    bool contains(const T& value) const {
+        return find(value) != nullptr;
+    }
     operator bool() const { return head != nullptr; }
-    template <typename ...Args> 
+
     // Returns true if successfully inserted, will return false if data is already contained (doesn't duplicate).
     bool insert(const T& o) {
         DBGTRACE();
@@ -233,9 +347,14 @@ public:
         return true;
     }
 
+    // Returns true if node was successfully removed, false otherwise.
+    bool remove(const T& value) {
+        RBNode<T>* node = find(value);
+        if (node == nullptr) return false;
+        intl_delete(node);
+        return true;
+    }
 
-
-    
     // Validate tree structure
     void validate() {
         validate_tree(head);

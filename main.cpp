@@ -138,9 +138,8 @@ void search_rbt(const RBTree<int>& rbt) {
 	consolein(buf,32);
 	int key = atoi(buf);
 	printf("Searching for %i...\n", key);
-	assert(false);
-	// bool found = bst.contains(key);
-	// printf("%s %i\n", found ? "Found" : "Did not find", key); 
+	bool found = rbt.contains(key);
+	printf("%s %i\n", found ? "Found" : "Did not find", key); 
 }
 void delete_rbt(RBTree<int>& rbt) {
 	char buf[32] = { '\0' };
@@ -148,9 +147,8 @@ void delete_rbt(RBTree<int>& rbt) {
 	consolein(buf,32);
 	int key = atoi(buf);
 	printf("Searching for %i...\n", key);
-	assert(false);
-	// bool removed = bst.remove(key);
-	// printf("%s %i\n", removed ? "Removed" : "Did not find", key); 
+	bool removed = rbt.remove(key);
+	printf("%s %i\n", removed ? "Removed" : "Did not find", key); 
 }
 
 int main() {
